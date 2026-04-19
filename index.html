@@ -10,45 +10,47 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            background: rgba(0,0,0,0.65);
+            background: rgba(0,0,0,0.6);
             backdrop-filter: blur(8px);
-            color: #ffecb3;
+            color: #fff3e0;
             padding: 10px 20px;
             border-radius: 30px;
-            border-left: 4px solid #d4af37;
+            border-left: 4px solid #b8860b;
             z-index: 10;
             pointer-events: none;
             font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         #info h2 { margin: 0; font-size: 1.2rem; }
-        #info p { margin: 5px 0 0; font-size: 0.8rem; }
+        #info p { margin: 5px 0 0; font-size: 0.8rem; opacity: 0.9; }
         .info-panel {
             position: absolute;
             right: 20px;
             top: 80px;
             width: 280px;
-            background: rgba(20,20,30,0.9);
+            background: rgba(30,30,40,0.9);
             backdrop-filter: blur(12px);
             border-radius: 16px;
             padding: 18px;
-            color: #f0f0f0;
-            border-right: 4px solid #d4af37;
+            color: #f5f5f5;
+            border-right: 4px solid #b8860b;
             transform: translateX(340px);
             transition: transform 0.4s ease;
             z-index: 20;
             font-size: 14px;
             line-height: 1.5;
             pointer-events: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .info-panel.show { transform: translateX(0); }
-        .info-panel h4 { margin: 0 0 8px; color: #d4af37; }
+        .info-panel h4 { margin: 0 0 8px; color: #e6b422; }
         .close-panel {
             position: absolute;
             top: 12px;
             right: 16px;
             background: none;
             border: none;
-            color: #aaa;
+            color: #ccc;
             font-size: 20px;
             cursor: pointer;
         }
@@ -58,9 +60,9 @@
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.75);
+            background: rgba(0,0,0,0.7);
             backdrop-filter: blur(8px);
-            color: #d4af37;
+            color: #f0c060;
             padding: 8px 20px;
             border-radius: 40px;
             font-size: 14px;
@@ -69,6 +71,7 @@
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
+            font-weight: 500;
         }
         @media (max-width: 600px) {
             .info-panel { width: 240px; padding: 14px; top: 70px; }
@@ -107,7 +110,7 @@
         // 模型链接
         const MODEL_URL = 'https://raw.githubusercontent.com/YIZHI-9/1/refs/heads/main/stone%20animal%20sculpture%203d%20model.glb';
 
-        // 热点数据（坐标可根据实际模型微调）
+        // 热点数据（坐标可能需要根据你的模型微调，但垂直位置已随模型整体抬高）
         const hotspotsData = [
             { name: '张口露齿', pos: [0.28, 0.68, 0.45], desc: '熊呈张口状，獠牙微露，表现熊的威猛神态。' },
             { name: '短耳竖起', pos: [0.32, 0.82, 0.38], desc: '双耳短小直立，增强警觉感，体现汉代工匠的精准捕捉。' },
@@ -115,10 +118,9 @@
             { name: '鎏金工艺', pos: [0.15, 0.55, 0.42], desc: '通体鎏金，局部金层剥落。鎏金工艺：金汞齐涂抹后加热，汞挥发，金层附着。' }
         ];
 
-        // --- 场景初始化 ---
+        // --- 场景初始化：明亮的浅米色背景 ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0a2a);
-        scene.fog = new THREE.FogExp2(0x0a0a2a, 0.008);
+        scene.background = new THREE.Color(0xf5f0e0);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(2.2, 1.4, 2.8);
@@ -126,18 +128,19 @@
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
+        renderer.setClearColor(0xf5f0e0, 1.0);
         document.body.appendChild(renderer.domElement);
 
-        // CSS2渲染器（关键：设置 pointer-events: none 让容器不拦截鼠标，但标签本身可点）
+        // CSS2渲染器
         const labelRenderer = new CSS2DRenderer();
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
         labelRenderer.domElement.style.position = 'absolute';
         labelRenderer.domElement.style.top = '0px';
         labelRenderer.domElement.style.left = '0px';
-        labelRenderer.domElement.style.pointerEvents = 'none'; // 让鼠标事件穿透容器
+        labelRenderer.domElement.style.pointerEvents = 'none';
         document.body.appendChild(labelRenderer.domElement);
 
-        // --- 轨道控制（必须正确配置）---
+        // --- 轨道控制 ---
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.06;
@@ -148,29 +151,42 @@
         controls.enablePan = true;
         controls.target.set(0, 0.5, 0);
 
-        // --- 灯光 ---
-        const ambient = new THREE.AmbientLight(0x404060);
-        scene.add(ambient);
-        const dirLight = new THREE.DirectionalLight(0xffeedd, 1.2);
-        dirLight.position.set(2, 3, 2);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
-        const backLight = new THREE.PointLight(0xccaa66, 0.6);
+        // --- 灯光系统：明亮 ---
+        const ambientLight = new THREE.AmbientLight(0x8c8c8c, 0.7);
+        scene.add(ambientLight);
+        const mainLight = new THREE.DirectionalLight(0xfff5e0, 1.2);
+        mainLight.position.set(2, 3, 2);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
+        const backLight = new THREE.PointLight(0xd4b88c, 0.6);
         backLight.position.set(-1.2, 1.5, -1.8);
         scene.add(backLight);
-        const fillLight = new THREE.PointLight(0x88aaff, 0.4);
+        const fillLight = new THREE.PointLight(0xaaccff, 0.4);
         fillLight.position.set(1.5, 1.2, 1.8);
         scene.add(fillLight);
+        const bottomLight = new THREE.PointLight(0xc9aa6f, 0.4);
+        bottomLight.position.set(0, -0.8, 0);
+        scene.add(bottomLight);
+        const fillAmbient = new THREE.AmbientLight(0xccbb99, 0.3);
+        scene.add(fillAmbient);
 
-        // 辅助地面阴影
+        // --- 辅助地面和阴影平面（调整位置避免穿模）---
+        // 阴影接收平面：降低一点，让模型悬空一点点（但看起来像站在平面上）
         const shadowPlane = new THREE.Mesh(
             new THREE.PlaneGeometry(3.5, 3.5),
-            new THREE.ShadowMaterial({ opacity: 0.25, transparent: true, side: THREE.DoubleSide })
+            new THREE.ShadowMaterial({ opacity: 0.2, color: 0x000000, transparent: true, side: THREE.DoubleSide })
         );
         shadowPlane.rotation.x = -Math.PI / 2;
-        shadowPlane.position.y = -0.45;
+        shadowPlane.position.y = -0.5;   // 从 -0.45 降到 -0.5，留出空间
         shadowPlane.receiveShadow = true;
         scene.add(shadowPlane);
+
+        // 网格辅助线：同样降低，并且半透明
+        const gridHelper = new THREE.GridHelper(5, 20, 0xc0b090, 0xe0d0b0);
+        gridHelper.position.y = -0.45;   // 比阴影平面略高一点，作为视觉参考
+        gridHelper.material.transparent = true;
+        gridHelper.material.opacity = 0.3;
+        scene.add(gridHelper);
 
         // --- 热点面板逻辑 ---
         const panel = document.getElementById('hotspot-panel');
@@ -188,25 +204,25 @@
             }
         });
 
-        // --- 创建可点击的热点标签（CSS2DObject）---
+        // --- 创建热点标签 ---
         function createLabel(name, pos, desc) {
             const div = document.createElement('div');
             div.textContent = name;
             div.className = 'hotspot-label';
-            div.style.backgroundColor = 'rgba(201, 165, 59, 0.9)';
+            div.style.backgroundColor = 'rgba(201, 165, 59, 0.95)';
             div.style.color = '#2c2c2c';
             div.style.padding = '5px 14px';
             div.style.borderRadius = '40px';
             div.style.fontSize = '14px';
             div.style.fontWeight = 'bold';
             div.style.cursor = 'pointer';
-            div.style.border = '1px solid #ffd966';
-            div.style.boxShadow = '0 2px 12px rgba(0,0,0,0.3)';
+            div.style.border = '1px solid #b8860b';
+            div.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
             div.style.transition = '0.2s';
             div.style.whiteSpace = 'nowrap';
-            div.style.pointerEvents = 'auto';  // 标签自身可点击
+            div.style.pointerEvents = 'auto';
             div.onmouseenter = () => { div.style.transform = 'scale(1.05)'; div.style.backgroundColor = '#e0b854'; };
-            div.onmouseleave = () => { div.style.transform = 'scale(1)'; div.style.backgroundColor = 'rgba(201, 165, 59, 0.9)'; };
+            div.onmouseleave = () => { div.style.transform = 'scale(1)'; div.style.backgroundColor = 'rgba(201, 165, 59, 0.95)'; };
             div.onclick = (e) => { e.stopPropagation(); showPanel(name, desc); };
             const label = new CSS2DObject(div);
             label.position.set(pos[0], pos[1], pos[2]);
@@ -221,16 +237,17 @@
             bearModel = gltf.scene;
             bearModel.traverse(child => { if (child.isMesh) child.castShadow = true; });
             bearModel.scale.set(0.85, 0.85, 0.85);
-            bearModel.position.set(0, -0.25, 0);
+            // 【关键修改】将模型向上抬高，避免穿模。原位置 y = -0.25，现在改为 0.0 或略高
+            bearModel.position.set(0, 0.05, 0);
             scene.add(bearModel);
 
-            // 添加热点标签（作为模型的子物体）
+            // 添加热点标签（作为模型的子物体，坐标相对模型）
             hotspotsData.forEach(h => {
                 const label = createLabel(h.name, h.pos, h.desc);
                 bearModel.add(label);
             });
 
-            // 自动设置 controls 目标
+            // 调整 controls 目标点
             const box = new THREE.Box3().setFromObject(bearModel);
             const center = box.getCenter(new THREE.Vector3());
             controls.target.copy(center);
@@ -245,9 +262,10 @@
             errDiv.style.position = 'absolute';
             errDiv.style.bottom = '20px';
             errDiv.style.left = '20px';
-            errDiv.style.background = 'rgba(0,0,0,0.8)';
-            errDiv.style.color = '#ff8888';
+            errDiv.style.background = 'rgba(0,0,0,0.7)';
+            errDiv.style.color = '#ffaa88';
             errDiv.style.padding = '8px 16px';
+            errDiv.style.borderRadius = '8px';
             document.body.appendChild(errDiv);
         });
 
@@ -258,8 +276,8 @@
         loadingDiv.style.position = 'absolute';
         loadingDiv.style.bottom = '20px';
         loadingDiv.style.right = '20px';
-        loadingDiv.style.background = 'rgba(0,0,0,0.6)';
-        loadingDiv.style.color = '#ccc';
+        loadingDiv.style.background = 'rgba(0,0,0,0.5)';
+        loadingDiv.style.color = '#eee';
         loadingDiv.style.padding = '4px 12px';
         loadingDiv.style.borderRadius = '20px';
         document.body.appendChild(loadingDiv);
@@ -281,10 +299,10 @@
             }
         }
 
-        // --- 动画循环（必须调用 controls.update）---
+        // --- 动画循环 ---
         function animate() {
             requestAnimationFrame(animate);
-            controls.update();  // 关键：使旋转/缩放生效
+            controls.update();
             checkMacro();
             renderer.render(scene, camera);
             labelRenderer.render(scene, camera);
