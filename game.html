@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>掀席子游戏 · 鎏金熊形青铜镇</title>
+    <title>鎏金熊形青铜镇 · 掀席子游戏</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; overflow: hidden; color: #2c2c2c; }
-        /* 游戏提示 */
+        body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; overflow: hidden; background: #f5f0e0; }
         .game-tip {
             position: absolute;
             bottom: 30px;
@@ -23,7 +22,6 @@
             z-index: 20;
             pointer-events: none;
             font-weight: 500;
-            transition: opacity 0.3s;
         }
         .score-board {
             position: absolute;
@@ -39,38 +37,37 @@
             pointer-events: none;
             font-weight: bold;
         }
-        /* 返回按钮样式 */
-        #backBtn {
-            position: fixed;
+        .back-btn {
+            position: absolute;
             top: 20px;
             left: 20px;
-            z-index: 10000;
-            background: #d4af37;
-            color: #2c2c2c;
-            border: none;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            color: #d4af37;
+            padding: 8px 16px;
             border-radius: 30px;
-            padding: 8px 18px;
-            font-weight: bold;
-            cursor: pointer;
             font-size: 1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            transition: transform 0.2s, background 0.2s;
+            z-index: 20;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+            transition: transform 0.2s;
         }
-        #backBtn:hover {
-            background: #e6c87a;
-            transform: scale(1.02);
+        .back-btn:hover {
+            transform: scale(1.05);
+            background: rgba(0,0,0,0.8);
         }
         @media (max-width: 600px) {
             .game-tip { font-size: 0.7rem; white-space: nowrap; bottom: 15px; }
             .score-board { font-size: 0.8rem; top: 12px; right: 12px; }
-            #backBtn { top: 12px; left: 12px; padding: 5px 12px; font-size: 0.8rem; }
+            .back-btn { font-size: 0.8rem; top: 12px; left: 12px; padding: 6px 12px; }
         }
     </style>
 </head>
 <body>
+    <button class="back-btn" id="backBtn">← 返回展厅</button>
     <div class="game-tip" id="gameTip">🖱️ 点击席角掀席 | 点击小熊累飞，停止后自动落回</div>
     <div class="score-board" id="scoreBoard">🐻 掀席次数: 0</div>
-    <button id="backBtn">🏛️ 返回展厅</button>
 
     <script type="importmap">
         {
@@ -89,6 +86,10 @@
         import gsap from 'gsap';
 
         const MODEL_URL = 'https://raw.githubusercontent.com/YIZHI-9/1/refs/heads/main/stone%20animal%20sculpture%203d%20model.glb';
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
 
         let liftCount = 0;
         let isAnimating = false;
@@ -140,30 +141,30 @@
         backLight.position.set(-1, 1.2, -1.5);
         scene.add(backLight);
         
-        // 阴影地面
+        // 阴影地面 (配合席子高度)
         const shadowPlane = new THREE.Mesh(
             new THREE.PlaneGeometry(5, 5),
             new THREE.ShadowMaterial({ opacity: 0.2, color: 0x000000, transparent: true, side: THREE.DoubleSide })
         );
         shadowPlane.rotation.x = -Math.PI / 2;
-        shadowPlane.position.y = -0.62;
+        shadowPlane.position.y = -0.64; // 略低于席子
         shadowPlane.receiveShadow = true;
         scene.add(shadowPlane);
         
         // 辅助网格
         const gridHelper = new THREE.GridHelper(6, 20, 0xc0b090, 0xe0d0b0);
-        gridHelper.position.y = -0.58;
+        gridHelper.position.y = -0.60;
         gridHelper.material.transparent = true;
         gridHelper.material.opacity = 0.15;
         scene.add(gridHelper);
         
-        // ---------- 席子 ----------
+        // 席子: baseY = -0.60
         const matWidth = 2.8;
         const matDepth = 2.8;
         const matSegments = 48;
         const matGeometry = new THREE.PlaneGeometry(matWidth, matDepth, matSegments, matSegments);
         matGeometry.rotateX(-Math.PI / 2);
-        const baseY = -0.58;
+        const baseY = -0.60;
         const positions = matGeometry.attributes.position.array;
         const origY = new Array(positions.length / 3).fill(baseY);
         const origX = [];
@@ -314,7 +315,7 @@
             clickZones.push(zone);
         });
         
-        // 加载熊模型
+        // 加载熊模型 (熊高度 -0.38)
         const loader = new GLTFLoader();
         let originalModel = null;
         let cornerBears = [];
@@ -328,7 +329,7 @@
                 { x: -1.18, z: 1.18, rot: 0 },
                 { x: 1.18, z: 1.18, rot: 0 }
             ];
-            const bearY = -0.26;
+            const bearY = -0.38;
             for (let i = 0; i < 4; i++) {
                 const clone = model.clone();
                 clone.scale.set(0.45, 0.45, 0.45);
@@ -509,11 +510,6 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // 返回按钮功能（已存在，再次确保）
-        document.getElementById('backBtn').addEventListener('click', () => {
-            window.location.href = 'index.html';
         });
     </script>
 </body>
