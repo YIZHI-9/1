@@ -302,5 +302,13 @@
     window.addEventListener('resize', handleResize);
     handleResize();
 </script>
+<!-- 跳转小游戏的按钮 -->
+<button id="gotoGameBtn" style="position: fixed; top: 20px; right: 20px; z-index: 1000; padding: 10px 20px; background: #d4af37; border: none; border-radius: 30px; font-weight: bold; cursor: pointer;">🎮 玩掀席子游戏</button>
+
+<script>
+document.getElementById('gotoGameBtn').addEventListener('click', () => {
+  window.location.href = 'game.html'; // 确保 game.html 在同目录下
+});
+</script>
 </body>
 </html>
