@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>鎏金熊形青铜镇 · 掀席 + 累飞自动复位 | 汉代客厅</title>
+    <title>鎏金熊形青铜镇 · 掀席子游戏 | 汉代客厅</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; overflow: hidden; color: #2c2c2c; }
@@ -38,13 +38,38 @@
             pointer-events: none;
             font-weight: bold;
         }
+        /* 返回按钮样式，与跳转按钮风格一致，放在左上角避免与计分板重叠 */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            padding: 10px 20px;
+            background: #d4af37;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #2c2c2c;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .back-btn:hover {
+            transform: scale(1.05);
+            background: #e0b854;
+        }
         @media (max-width: 600px) {
             .game-tip { font-size: 0.7rem; white-space: nowrap; bottom: 15px; }
             .score-board { font-size: 0.8rem; top: 12px; right: 12px; }
+            .back-btn { top: 12px; left: 12px; padding: 6px 12px; font-size: 14px; }
         }
     </style>
 </head>
 <body>
+    <!-- 返回按钮 -->
+    <button class="back-btn" id="backBtn">🏠 返回展厅</button>
+
     <div class="game-tip" id="gameTip">🖱️ 点击席角掀席 | 点击小熊累飞，停止后自动落回</div>
     <div class="score-board" id="scoreBoard">🐻 掀席次数: 0</div>
 
@@ -122,24 +147,24 @@
             new THREE.ShadowMaterial({ opacity: 0.2, color: 0x000000, transparent: true, side: THREE.DoubleSide })
         );
         shadowPlane.rotation.x = -Math.PI / 2;
-        shadowPlane.position.y = -0.52;
+        shadowPlane.position.y = -0.62;
         shadowPlane.receiveShadow = true;
         scene.add(shadowPlane);
         
         // 辅助网格
         const gridHelper = new THREE.GridHelper(6, 20, 0xc0b090, 0xe0d0b0);
-        gridHelper.position.y = -0.48;
+        gridHelper.position.y = -0.58;
         gridHelper.material.transparent = true;
         gridHelper.material.opacity = 0.15;
         scene.add(gridHelper);
         
-        // ---------- 席子 ----------
+        // 席子
         const matWidth = 2.8;
         const matDepth = 2.8;
         const matSegments = 48;
         const matGeometry = new THREE.PlaneGeometry(matWidth, matDepth, matSegments, matSegments);
         matGeometry.rotateX(-Math.PI / 2);
-        const baseY = -0.48;
+        const baseY = -0.58;
         const positions = matGeometry.attributes.position.array;
         const origY = new Array(positions.length / 3).fill(baseY);
         const origX = [];
@@ -304,7 +329,6 @@
                 { x: -1.18, z: 1.18, rot: 0 },
                 { x: 1.18, z: 1.18, rot: 0 }
             ];
-            // 提高熊的高度，彻底避免穿模
             const bearY = -0.26;
             for (let i = 0; i < 4; i++) {
                 const clone = model.clone();
@@ -486,6 +510,11 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 返回按钮逻辑
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = 'index.html'; // 返回展示页面，请确保文件名正确
         });
     </script>
 </body>
