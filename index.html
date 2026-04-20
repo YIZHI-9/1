@@ -5,27 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>鎏金熊形青铜镇 · 数字展项 | 西汉瑰宝</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Roboto, "Noto Sans", sans-serif;
+            font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Roboto, sans-serif;
             overflow: hidden;
             color: #2c2c2c;
         }
-
-        /* 整体布局：左侧文字区 + 右侧3D区 */
         .exhibition-container {
             display: flex;
             width: 100vw;
             height: 100vh;
             overflow: hidden;
         }
-
-        /* 左侧信息面板 */
         .info-sidebar {
             width: 320px;
             background: rgba(250, 245, 235, 0.92);
@@ -35,21 +26,10 @@
             overflow-y: auto;
             z-index: 5;
             box-shadow: 2px 0 12px rgba(0, 0, 0, 0.05);
-            pointer-events: auto;
         }
-
-        /* 自定义滚动条 */
-        .info-sidebar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .info-sidebar::-webkit-scrollbar-track {
-            background: #e6dfd3;
-        }
-        .info-sidebar::-webkit-scrollbar-thumb {
-            background: #b8860b;
-            border-radius: 4px;
-        }
-
+        .info-sidebar::-webkit-scrollbar { width: 4px; }
+        .info-sidebar::-webkit-scrollbar-track { background: #e6dfd3; }
+        .info-sidebar::-webkit-scrollbar-thumb { background: #b8860b; border-radius: 4px; }
         .title-section {
             margin-bottom: 28px;
             border-bottom: 2px solid #d4af37;
@@ -98,15 +78,6 @@
             line-height: 1.5;
             color: #4a3a28;
         }
-        .badge {
-            display: inline-block;
-            background: #d4af37;
-            color: #2c2c2c;
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 20px;
-            margin-right: 8px;
-        }
         .interact-tip {
             background: #2c2c2c;
             color: #e6c87a;
@@ -116,25 +87,13 @@
             text-align: center;
             margin-top: 20px;
         }
-        .interact-tip span {
-            display: inline-block;
-            margin: 0 6px;
-        }
-
-        /* 右侧3D画布区 */
         .viewer {
             flex: 1;
             position: relative;
             background: #f5f0e0;
             overflow: hidden;
         }
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* 热点信息面板 (浮在右侧) */
+        canvas { display: block; width: 100%; height: 100%; }
         .hotspot-panel {
             position: absolute;
             bottom: 24px;
@@ -153,18 +112,9 @@
             font-size: 0.85rem;
             box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
-        .hotspot-panel.show {
-            transform: translateX(0);
-        }
-        .hotspot-panel h4 {
-            margin-bottom: 8px;
-            color: #e6c87a;
-            font-size: 1rem;
-        }
-        .hotspot-panel p {
-            line-height: 1.4;
-            font-size: 0.8rem;
-        }
+        .hotspot-panel.show { transform: translateX(0); }
+        .hotspot-panel h4 { margin-bottom: 8px; color: #e6c87a; font-size: 1rem; }
+        .hotspot-panel p { line-height: 1.4; font-size: 0.8rem; }
         .close-hotspot {
             position: absolute;
             top: 12px;
@@ -175,11 +125,7 @@
             font-size: 18px;
             cursor: pointer;
         }
-        .close-hotspot:hover {
-            color: white;
-        }
-
-        /* 微距提示条 */
+        .close-hotspot:hover { color: white; }
         .macro-tip {
             position: absolute;
             bottom: 24px;
@@ -196,15 +142,54 @@
             opacity: 0;
             transition: opacity 0.25s;
             pointer-events: none;
-            font-weight: 500;
-            letter-spacing: 1px;
         }
-
-        /* 响应式：窄屏幕时左侧面板折叠为顶部横条 */
+        /* 加载进度条覆盖层 */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(245, 240, 224, 0.9);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            font-family: monospace;
+        }
+        .progress-bar-container {
+            width: 260px;
+            height: 6px;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 16px;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #d4af37;
+            transition: width 0.2s;
+        }
+        .retry-btn {
+            margin-top: 20px;
+            background: #b8860b;
+            border: none;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: none;
+        }
+        .loading-text {
+            font-size: 0.9rem;
+            color: #5a3e1b;
+        }
         @media (max-width: 780px) {
-            .exhibition-container {
-                flex-direction: column;
-            }
+            .exhibition-container { flex-direction: column; }
             .info-sidebar {
                 width: 100%;
                 height: auto;
@@ -212,49 +197,17 @@
                 padding: 12px 16px;
                 border-right: none;
                 border-bottom: 1px solid rgba(180,130,70,0.3);
-                backdrop-filter: blur(12px);
             }
-            .title-section h1 {
-                font-size: 1.4rem;
-            }
-            .culture-card {
-                padding: 10px;
-                margin-bottom: 10px;
-            }
-            .interact-tip {
-                padding: 8px;
-                font-size: 0.7rem;
-            }
-            .viewer {
-                min-height: 62%;
-            }
-            .hotspot-panel {
-                width: 240px;
-                bottom: 16px;
-                right: 16px;
-                padding: 12px 16px;
-            }
-        }
-
-        /* 加载提示 */
-        .loading-tip {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.55);
-            backdrop-filter: blur(4px);
-            color: #ddd;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            z-index: 20;
-            pointer-events: none;
+            .title-section h1 { font-size: 1.4rem; }
+            .culture-card { padding: 10px; margin-bottom: 10px; }
+            .interact-tip { padding: 8px; font-size: 0.7rem; }
+            .viewer { min-height: 62%; }
+            .hotspot-panel { width: 240px; bottom: 16px; right: 16px; padding: 12px 16px; }
         }
     </style>
 </head>
 <body>
 <div class="exhibition-container">
-    <!-- 左侧介绍区 -->
     <div class="info-sidebar">
         <div class="title-section">
             <h1>🐻 鎏金熊形青铜镇</h1>
@@ -264,30 +217,24 @@
                 <span>中国国家博物馆藏</span>
             </div>
         </div>
-
         <div class="intro-text">
             📜 席镇 · 压席之器<br>
             汉代席地而坐，四角以镇压之，防卷翘。此熊镇通体鎏金，造型憨萌，集实用与祥瑞于一身，是汉代贵族生活美学的缩影。
         </div>
-
         <div class="culture-card">
             <h3>🐾 熊 · 力量与祥瑞</h3>
             <p>汉代崇拜熊，视其为阳刚、勇武的象征，亦谐音“雄”，有英雄之意。黄帝号“有熊氏”，熊因而兼具帝王祥瑞与世俗守护的双重身份。</p>
         </div>
-
         <div class="culture-card">
             <h3>✨ 鎏金工艺</h3>
             <p>金汞齐涂抹于青铜表面，加热汞挥发，金层固着。历经两千年，斑驳金痕与青铜绿锈交相辉映，是时间与技艺的对话。</p>
         </div>
-
         <div class="interact-tip">
             🖱️ 鼠标拖拽旋转 | 右键平移 | 滚动缩放<br>
             🏷️ 点击金色标签 → 查看细节解读<br>
             🔍 拉近镜头 → 自动触发微距工艺说明
         </div>
     </div>
-
-    <!-- 右侧3D查看器 -->
     <div class="viewer" id="viewer-container">
         <div id="hotspot-panel" class="hotspot-panel">
             <button class="close-hotspot" id="closeHotspotBtn">✕</button>
@@ -295,7 +242,14 @@
             <p id="panel-desc">通体鎏金，局部金层自然剥落。鎏金工艺是将金汞齐涂抹于青铜表面，加热使汞挥发，金层附着，体现了汉代高超的金属工艺水平。</p>
         </div>
         <div id="macro-tip" class="macro-tip">🔍 微距模式 · 鎏金层细节</div>
-        <div id="loading-tip" class="loading-tip">加载模型中...</div>
+        <!-- 加载覆盖层 -->
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="loading-text">🐻 加载熊镇模型中...</div>
+            <div class="progress-bar-container">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <button id="retry-btn" class="retry-btn">重新加载</button>
+        </div>
     </div>
 </div>
 
@@ -314,100 +268,140 @@
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
     import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
-    // ---------- 模型链接 ----------
-    const MODEL_URL = https://raw.githubusercontent.com/YIZHI-9/1/refs/heads/main/stone%20animal%20sculpture%203d%20model.glb';
-
-    // 热点数据 (坐标可根据实际模型微调)
+    // 备选模型链接列表（按优先级排序，第一个最优先）
+    const MODEL_URLS = [
+        'https://raw.githubusercontent.com/YIZHI-9/1/refs/heads/main/stone%20animal%20sculpture%203d%20model.glb',
+        'https://raw.githubusercontent.com/YIZHI-9/1/main/stone%20animal%20sculpture%203d%20model.glb',
+        // 如果上面都慢，可以添加其他镜像，例如使用 statically 镜像（自动转换）
+        'https://cdn.statically.io/gh/YIZHI-9/1/main/stone%20animal%20sculpture%203d%20model.glb'
+    ];
+    
+    let currentUrlIndex = 0;
+    let loader = null;
+    let bearModel = null;
+    let controls = null;
+    let scene, camera, renderer, labelRenderer;
+    let macroActive = false;
+    let loadingOverlay, progressFill, retryBtn, loadingText;
+    
+    // 热点数据
     const hotspotsData = [
         { name: '张口露齿', pos: [0.28, 0.68, 0.45], desc: '熊呈张口状，獠牙微露，表现熊的威猛神态，展现了汉代工匠对动物形态的精准捕捉。' },
         { name: '短耳竖起', pos: [0.32, 0.82, 0.38], desc: '双耳短小直立，增强警觉感，体现了汉代小型雕塑在写实与写意之间的精妙平衡。' },
         { name: '前肢上举', pos: [0.45, 0.48, 0.35], desc: '前肢自然上举，呈蹲踞状，憨态可掬，是汉代小型雕塑艺术的典型风格。' },
         { name: '鎏金工艺', pos: [0.15, 0.55, 0.42], desc: '通体鎏金，局部金层剥落。鎏金工艺：金汞齐涂抹后加热，汞挥发，金层附着，历经两千年岁月。' }
     ];
-
-    // --- 初始化场景 (明亮背景) ---
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf5f0e0);
-
-    const camera = new THREE.PerspectiveCamera(45, () => {
+    
+    // 初始化场景（先建立空场景，等模型加载后再添加热点等，但为了显示，先创建基础环境）
+    function initScene() {
         const container = document.getElementById('viewer-container');
-        return container.clientWidth / container.clientHeight;
-    }(), 0.1, 1000);
-    camera.position.set(2.2, 1.4, 2.8);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(document.getElementById('viewer-container').clientWidth, document.getElementById('viewer-container').clientHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.setClearColor(0xf5f0e0, 1.0);
-    document.getElementById('viewer-container').appendChild(renderer.domElement);
-
-    // CSS2渲染器（热点标签）
-    const labelRenderer = new CSS2DRenderer();
-    labelRenderer.setSize(document.getElementById('viewer-container').clientWidth, document.getElementById('viewer-container').clientHeight);
-    labelRenderer.domElement.style.position = 'absolute';
-    labelRenderer.domElement.style.top = '0px';
-    labelRenderer.domElement.style.left = '0px';
-    labelRenderer.domElement.style.pointerEvents = 'none';
-    document.getElementById('viewer-container').appendChild(labelRenderer.domElement);
-
-    // --- 轨道控制 ---
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.06;
-    controls.rotateSpeed = 1.2;
-    controls.zoomSpeed = 1.2;
-    controls.panSpeed = 0.8;
-    controls.enableZoom = true;
-    controls.enablePan = true;
-    controls.target.set(0, 0.5, 0);
-
-    // --- 灯光 (明亮清晰) ---
-    const ambientLight = new THREE.AmbientLight(0x8c8c8c, 0.7);
-    scene.add(ambientLight);
-    const mainLight = new THREE.DirectionalLight(0xfff5e0, 1.2);
-    mainLight.position.set(2, 3, 2);
-    mainLight.castShadow = true;
-    scene.add(mainLight);
-    const backLight = new THREE.PointLight(0xd4b88c, 0.6);
-    backLight.position.set(-1.2, 1.5, -1.8);
-    scene.add(backLight);
-    const fillLight = new THREE.PointLight(0xaaccff, 0.4);
-    fillLight.position.set(1.5, 1.2, 1.8);
-    scene.add(fillLight);
-    const bottomLight = new THREE.PointLight(0xc9aa6f, 0.4);
-    bottomLight.position.set(0, -0.8, 0);
-    scene.add(bottomLight);
-    const fillAmbient = new THREE.AmbientLight(0xccbb99, 0.3);
-    scene.add(fillAmbient);
-
-    // 阴影接收平面 (半透明，模拟地面)
-    const shadowPlane = new THREE.Mesh(
-        new THREE.PlaneGeometry(3.5, 3.5),
-        new THREE.ShadowMaterial({ opacity: 0.2, color: 0x000000, transparent: true, side: THREE.DoubleSide })
-    );
-    shadowPlane.rotation.x = -Math.PI / 2;
-    shadowPlane.position.y = -0.35;
-    shadowPlane.receiveShadow = true;
-    scene.add(shadowPlane);
-
-    // --- 热点面板 DOM 操作 ---
-    const panel = document.getElementById('hotspot-panel');
-    const panelTitle = document.getElementById('panel-title');
-    const panelDesc = document.getElementById('panel-desc');
-    function showPanel(title, desc) {
-        panelTitle.innerText = title;
-        panelDesc.innerText = desc;
-        panel.classList.add('show');
-    }
-    document.getElementById('closeHotspotBtn').onclick = () => panel.classList.remove('show');
-    // 点击其他地方关闭
-    window.addEventListener('click', (e) => {
-        if (!e.target.closest('.hotspot-label') && !panel.contains(e.target)) {
-            panel.classList.remove('show');
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf5f0e0);
+        
+        camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(2.2, 1.4, 2.8);
+        
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.setClearColor(0xf5f0e0, 1.0);
+        container.appendChild(renderer.domElement);
+        
+        labelRenderer = new CSS2DRenderer();
+        labelRenderer.setSize(container.clientWidth, container.clientHeight);
+        labelRenderer.domElement.style.position = 'absolute';
+        labelRenderer.domElement.style.top = '0px';
+        labelRenderer.domElement.style.left = '0px';
+        labelRenderer.domElement.style.pointerEvents = 'none';
+        container.appendChild(labelRenderer.domElement);
+        
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.06;
+        controls.rotateSpeed = 1.2;
+        controls.zoomSpeed = 1.2;
+        controls.panSpeed = 0.8;
+        controls.enableZoom = true;
+        controls.enablePan = true;
+        controls.target.set(0, 0.5, 0);
+        
+        // 灯光
+        const ambientLight = new THREE.AmbientLight(0x8c8c8c, 0.7);
+        scene.add(ambientLight);
+        const mainLight = new THREE.DirectionalLight(0xfff5e0, 1.2);
+        mainLight.position.set(2, 3, 2);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
+        const backLight = new THREE.PointLight(0xd4b88c, 0.6);
+        backLight.position.set(-1.2, 1.5, -1.8);
+        scene.add(backLight);
+        const fillLight = new THREE.PointLight(0xaaccff, 0.4);
+        fillLight.position.set(1.5, 1.2, 1.8);
+        scene.add(fillLight);
+        const bottomLight = new THREE.PointLight(0xc9aa6f, 0.4);
+        bottomLight.position.set(0, -0.8, 0);
+        scene.add(bottomLight);
+        const fillAmbient = new THREE.AmbientLight(0xccbb99, 0.3);
+        scene.add(fillAmbient);
+        
+        const shadowPlane = new THREE.Mesh(
+            new THREE.PlaneGeometry(3.5, 3.5),
+            new THREE.ShadowMaterial({ opacity: 0.2, color: 0x000000, transparent: true, side: THREE.DoubleSide })
+        );
+        shadowPlane.rotation.x = -Math.PI / 2;
+        shadowPlane.position.y = -0.35;
+        shadowPlane.receiveShadow = true;
+        scene.add(shadowPlane);
+        
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            if (bearModel) {
+                const dist = camera.position.distanceTo(bearModel.position);
+                const macroTip = document.getElementById('macro-tip');
+                if (dist < 0.95 && !macroActive) {
+                    macroActive = true;
+                    macroTip.style.opacity = '1';
+                    showPanel('🔬 微距视角 · 鎏金工艺', hotspotsData[3].desc + ' 近距离观察可见金层自然剥落的痕迹，这是两千年岁月留下的印记。');
+                    setTimeout(() => { if (macroActive) macroTip.style.opacity = '0'; }, 4000);
+                } else if (dist >= 0.95 && macroActive) {
+                    macroActive = false;
+                    macroTip.style.opacity = '0';
+                }
+            }
+            renderer.render(scene, camera);
+            labelRenderer.render(scene, camera);
         }
-    });
-
-    // --- 创建CSS2D热点标签 ---
+        animate();
+        
+        window.addEventListener('resize', () => {
+            const w = container.clientWidth, h = container.clientHeight;
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+            labelRenderer.setSize(w, h);
+        });
+    }
+    
+    // 热点面板逻辑
+    function initPanel() {
+        const panel = document.getElementById('hotspot-panel');
+        const panelTitle = document.getElementById('panel-title');
+        const panelDesc = document.getElementById('panel-desc');
+        window.showPanel = function(title, desc) {
+            panelTitle.innerText = title;
+            panelDesc.innerText = desc;
+            panel.classList.add('show');
+        };
+        document.getElementById('closeHotspotBtn').onclick = () => panel.classList.remove('show');
+        window.addEventListener('click', (e) => {
+            if (!e.target.closest('.hotspot-label') && !panel.contains(e.target)) {
+                panel.classList.remove('show');
+            }
+        });
+    }
+    
     function createLabel(name, pos, desc) {
         const div = document.createElement('div');
         div.textContent = name;
@@ -431,84 +425,83 @@
         label.position.set(pos[0], pos[1], pos[2]);
         return label;
     }
-
-    // --- 加载模型 ---
-    const loader = new GLTFLoader();
-    let bearModel = null;
-
-    loader.load(MODEL_URL, (gltf) => {
-        bearModel = gltf.scene;
-        bearModel.traverse(child => { if (child.isMesh) child.castShadow = true; });
-        bearModel.scale.set(0.85, 0.85, 0.85);
-        bearModel.position.set(0, -0.15, 0);
-        scene.add(bearModel);
-
-        // 添加热点标签
-        hotspotsData.forEach(h => {
-            const label = createLabel(h.name, h.pos, h.desc);
-            bearModel.add(label);
-        });
-
-        // 调整控制器目标
-        const box = new THREE.Box3().setFromObject(bearModel);
-        const center = box.getCenter(new THREE.Vector3());
-        controls.target.copy(center);
-        controls.update();
-
-        // 移除加载提示
-        const loadingDiv = document.getElementById('loading-tip');
-        if (loadingDiv) loadingDiv.style.display = 'none';
-    }, undefined, (err) => {
-        console.error(err);
-        const loadingDiv = document.getElementById('loading-tip');
-        if (loadingDiv) loadingDiv.innerText = '⚠️ 模型加载失败，请检查网络或链接';
-    });
-
-    // --- 微距自动触发 ---
-    const macroTip = document.getElementById('macro-tip');
-    let macroActive = false;
-    function checkMacro() {
-        if (!bearModel) return;
-        const dist = camera.position.distanceTo(bearModel.position);
-        if (dist < 0.95 && !macroActive) {
-            macroActive = true;
-            macroTip.style.opacity = '1';
-            showPanel('🔬 微距视角 · 鎏金工艺', hotspotsData[3].desc + ' 近距离观察可见金层自然剥落的痕迹，这是两千年岁月留下的印记。');
-            setTimeout(() => { if (macroActive) macroTip.style.opacity = '0'; }, 4000);
-        } else if (dist >= 0.95 && macroActive) {
-            macroActive = false;
-            macroTip.style.opacity = '0';
+    
+    function loadModelWithRetry(urlIndex) {
+        if (urlIndex >= MODEL_URLS.length) {
+            loadingText.innerText = '❌ 所有模型链接均失败，请检查网络或联系管理员';
+            retryBtn.style.display = 'inline-block';
+            return;
         }
+        const url = MODEL_URLS[urlIndex];
+        loadingText.innerText = `🔄 尝试加载模型 (${urlIndex+1}/${MODEL_URLS.length})...`;
+        progressFill.style.width = '30%';
+        const gltfLoader = new GLTFLoader();
+        // 模拟进度（无法真实获取进度，但可以定时增加）
+        let progressInterval = setInterval(() => {
+            let w = parseFloat(progressFill.style.width) || 0;
+            if (w < 90) progressFill.style.width = (w + 5) + '%';
+        }, 500);
+        gltfLoader.load(url, (gltf) => {
+            clearInterval(progressInterval);
+            progressFill.style.width = '100%';
+            bearModel = gltf.scene;
+            bearModel.traverse(child => { if (child.isMesh) child.castShadow = true; });
+            bearModel.scale.set(0.85, 0.85, 0.85);
+            bearModel.position.set(0, -0.15, 0);
+            scene.add(bearModel);
+            
+            hotspotsData.forEach(h => {
+                const label = createLabel(h.name, h.pos, h.desc);
+                bearModel.add(label);
+            });
+            
+            const box = new THREE.Box3().setFromObject(bearModel);
+            const center = box.getCenter(new THREE.Vector3());
+            controls.target.copy(center);
+            controls.update();
+            
+            // 加载成功，隐藏覆盖层
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 500);
+        }, (xhr) => {
+            // 可选的进度回调（xhr.loaded / xhr.total）
+            if (xhr.lengthComputable) {
+                let percent = (xhr.loaded / xhr.total) * 100;
+                progressFill.style.width = percent + '%';
+            }
+        }, (error) => {
+            clearInterval(progressInterval);
+            console.warn(`模型加载失败 (${url}):`, error);
+            // 尝试下一个链接
+            loadModelWithRetry(urlIndex + 1);
+        });
     }
-
-    // --- 动画循环 ---
-    function animate() {
-        requestAnimationFrame(animate);
-        controls.update();
-        checkMacro();
-        renderer.render(scene, camera);
-        labelRenderer.render(scene, camera);
+    
+    // 启动
+    function start() {
+        initScene();
+        initPanel();
+        loadingOverlay = document.getElementById('loading-overlay');
+        progressFill = document.getElementById('progress-fill');
+        retryBtn = document.getElementById('retry-btn');
+        loadingText = document.querySelector('.loading-text');
+        
+        retryBtn.onclick = () => {
+            // 重置
+            if (bearModel) scene.remove(bearModel);
+            bearModel = null;
+            currentUrlIndex = 0;
+            progressFill.style.width = '0%';
+            retryBtn.style.display = 'none';
+            loadingText.innerText = '🔄 重新加载模型中...';
+            loadModelWithRetry(0);
+        };
+        
+        loadModelWithRetry(0);
     }
-    animate();
-
-    // --- 窗口自适应（适配左侧面板变化）---
-    function handleResize() {
-        const container = document.getElementById('viewer-container');
-        const width = container.clientWidth;
-        const height = container.clientHeight;
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
-        renderer.setSize(width, height);
-        labelRenderer.setSize(width, height);
-    }
-    window.addEventListener('resize', handleResize);
-    // 监听左侧面板可能的变化 (简单防抖)
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(handleResize, 100);
-    });
-    handleResize();
+    
+    start();
 </script>
 </body>
 </html>
