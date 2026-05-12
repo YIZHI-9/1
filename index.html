@@ -2,313 +2,617 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>鎏金熊形青铜镇 · 数字展项 | 西汉瑰宝</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鎏金熊形青铜镇 - 汉代文物珍品展示</title>
+    <!-- 引入Three.js 3D引擎 + GLB模型加载器 -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; overflow: hidden; color: #2c2c2c; }
-        .exhibition-container { display: flex; width: 100vw; height: 100vh; overflow: hidden; }
-        .info-sidebar {
-            width: 320px;
-            background: rgba(250,245,235,0.92);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid rgba(180,130,70,0.3);
-            padding: 24px 20px;
-            overflow-y: auto;
-            z-index: 5;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "楷体", "微软雅黑", SimHei, serif;
         }
-        .info-sidebar::-webkit-scrollbar { width: 4px; }
-        .info-sidebar::-webkit-scrollbar-track { background: #e6dfd3; }
-        .info-sidebar::-webkit-scrollbar-thumb { background: #b8860b; border-radius: 4px; }
-        .title-section { margin-bottom: 28px; border-bottom: 2px solid #d4af37; padding-bottom: 12px; }
-        .title-section h1 { font-size: 1.8rem; color: #5a3e1b; margin-bottom: 6px; }
-        .title-section .subtitle { font-size: 0.85rem; color: #7c5e2e; display: flex; gap: 12px; margin-top: 6px; }
-        .intro-text { background: rgba(212,175,55,0.12); padding: 16px; border-radius: 20px; margin-bottom: 24px; line-height: 1.6; font-size: 0.9rem; }
-        .culture-card { background: white; border-radius: 20px; padding: 16px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #f0e2cc; }
-        .culture-card h3 { font-size: 1.1rem; color: #b47c2e; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        .culture-card p { font-size: 0.85rem; line-height: 1.5; color: #4a3a28; }
-        .interact-tip { background: #2c2c2c; color: #e6c87a; border-radius: 28px; padding: 12px 16px; font-size: 0.8rem; text-align: center; margin-top: 20px; }
-        .viewer { flex: 1; position: relative; background: #f5f0e0; overflow: hidden; }
-        .hotspot-panel {
-            position: absolute; bottom: 24px; right: 24px; width: 280px;
-            background: rgba(20,20,28,0.9); backdrop-filter: blur(16px); border-radius: 20px;
-            padding: 16px 20px; color: #f5efdf; border-left: 4px solid #d4af37;
-            transform: translateX(320px); transition: transform 0.35s ease; z-index: 20;
-            pointer-events: auto; font-size: 0.85rem;
+        body {
+            background-color: #1a1a1a;
+            color: #d4b886;
+            line-height: 1.8;
+            position: relative;
         }
-        .hotspot-panel.show { transform: translateX(0); }
-        .hotspot-panel h4 { margin-bottom: 8px; color: #e6c87a; }
-        .close-hotspot { position: absolute; top: 12px; right: 16px; background: none; border: none; color: #aaa; font-size: 18px; cursor: pointer; }
-        .macro-tip {
-            position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); color: #e6c87a;
-            padding: 6px 18px; border-radius: 40px; font-size: 0.8rem; white-space: nowrap;
-            z-index: 15; opacity: 0; transition: opacity 0.25s; pointer-events: none;
+        /* 鎏金装饰底纹 */
+        .gold-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(circle at 50% 50%, #d4b886 0%, transparent 70%);
         }
-        .loading-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(245,240,224,0.9); backdrop-filter: blur(8px);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 30; font-size: 1rem; color: #5a3e1b;
+        /* 右上角功能索引导航 */
+        .top-nav {
+            position: fixed;
+            top: 30px;
+            right: 40px;
+            z-index: 999;
+            background: rgba(26, 26, 26, 0.9);
+            padding: 12px 20px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #4a5a5a;
         }
-        .loading-spinner {
-            width: 48px; height: 48px; border: 4px solid #d4af37; border-top-color: #b8860b;
-            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;
+        .top-nav a {
+            color: #d4b886;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .retry-btn {
-            margin-top: 16px; padding: 8px 20px; background: #b8860b; color: white;
-            border: none; border-radius: 30px; cursor: pointer; font-size: 0.9rem;
+        .top-nav a:hover {
+            color: #fff;
+            border-bottom: 2px solid #d4b886;
+            padding-bottom: 3px;
         }
-        @media (max-width: 780px) {
-            .exhibition-container { flex-direction: column; }
-            .info-sidebar { width: 100%; max-height: 38%; padding: 12px 16px; border-right: none; border-bottom: 1px solid rgba(180,130,70,0.3); }
-            .title-section h1 { font-size: 1.4rem; }
-            .viewer { min-height: 62%; }
-            .hotspot-panel { width: 240px; bottom: 16px; right: 16px; padding: 12px 16px; }
+        /* 顶部导航栏 */
+        header {
+            background-color: #2c2418;
+            color: #d4b886;
+            padding: 1.5rem 5%;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            border-bottom: 2px solid;
+            border-image: linear-gradient(to right, #4a5a5a, #d4b886, #4a5a5a) 1;
+        }
+        header h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            font-family: "黑体", SimHei, sans-serif;
+            letter-spacing: 8px;
+            text-shadow: 0 0 5px rgba(212, 184, 134, 0.7);
+        }
+        /* 横幅 */
+        .banner {
+            width: 100%;
+            height: 320px;
+            background: linear-gradient(rgba(44,36,24,0.85),rgba(44,36,24,0.85)),
+            url("https://img0.baidu.com/it/u=3802931521,2870932139&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500") center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid;
+            border-image: linear-gradient(to right, #4a5a5a, #d4b886, #4a5a5a) 1;
+            position: relative;
+            overflow: hidden;
+        }
+        .banner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.2;
+            z-index: -1;
+        }
+        .banner-text h2 {
+            font-size: 2.8rem;
+            letter-spacing: 8px;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 0 10px rgba(212, 184, 134, 0.5);
+            color: #d4b886;
+        }
+        .banner-text p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+        /* 容器主体 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 5% 3rem;
+            position: relative;
+            z-index: 1;
+        }
+        /* 文物概览 */
+        #overview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 5rem;
+            align-items: center;
+        }
+        .art-img {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            border: 3px solid #4a5a5a;
+            box-shadow: 0 0 0 1px #d4b886, 0 8px 25px rgba(0,0,0,0.5);
+        }
+        .art-img img {
+            width: 100%;
+            height: auto;
+            transition: transform 0.6s ease;
+        }
+        .art-img img:hover {
+            transform: scale(1.06);
+        }
+        .info-card {
+            background: rgba(44, 36, 24, 0.8);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            border: 1px solid #d4b886;
+        }
+        .info-card h3 {
+            font-size: 1.6rem;
+            color: #d4b886;
+            border-left: 5px solid #d4b886;
+            padding-left: 15px;
+            margin-bottom: 25px;
+        }
+        .info-item {
+            font-size: 1.05rem;
+            margin: 15px 0;
+            color: #fff;
+        }
+        .info-item span {
+            color: #d4b886;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        /* 标题样式 */
+        .section-title {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #d4b886;
+            margin: 5rem 0 2.5rem;
+            position: relative;
+            letter-spacing: 4px;
+            text-shadow: 0 0 5px rgba(212, 184, 134, 0.7);
+        }
+        .section-title::after {
+            content: "";
+            display: block;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #d4b886, transparent);
+            margin: 12px auto;
+        }
+        /* 文物简介 文字排版优化 */
+        #intro .desc-text {
+            background: rgba(44, 36, 24, 0.8);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            font-size: 1.1rem;
+            margin-bottom: 4rem;
+            line-height: 2;
+            border: 1px solid #d4b886;
+            color: #fff;
+        }
+        .desc-text p {
+            margin-bottom: 1.2rem;
+            text-indent: 2em;
+        }
+        /* 鎏金工艺模块 */
+        #craft {
+            margin-bottom: 5rem;
+        }
+        .craft-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        .craft-img {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            border: 3px solid #4a5a5a;
+            box-shadow: 0 0 0 1px #d4b886, 0 8px 25px rgba(0,0,0,0.5);
+        }
+        .craft-img img {
+            width: 100%;
+            height: auto;
+            transition: transform 0.6s ease;
+        }
+        .craft-img img:hover {
+            transform: scale(1.06);
+        }
+        .craft-text {
+            background: rgba(44, 36, 24, 0.8);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            border: 1px solid #d4b886;
+            color: #fff;
+        }
+        .craft-text h4 {
+            font-size: 1.4rem;
+            color: #d4b886;
+            margin-bottom: 1.5rem;
+            letter-spacing: 2px;
+            text-align: center;
+            text-shadow: 0 0 5px rgba(212, 184, 134, 0.7);
+        }
+        .craft-text .sub-title {
+            color: #d4b886;
+            font-weight: bold;
+            margin: 1.5rem 0 0.8rem;
+            font-size: 1.1rem;
+        }
+        .craft-text p {
+            margin-bottom: 1rem;
+            line-height: 1.9;
+        }
+        .craft-step {
+            margin-top: 1rem;
+            padding-left: 1rem;
+        }
+        .craft-step li {
+            margin: 0.6rem 0;
+            line-height: 1.8;
+        }
+        /* 细节赏析 */
+        #detail .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 5rem;
+        }
+        .detail-card {
+            background: rgba(44, 36, 24, 0.8);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
+            border: 1px solid #d4b886;
+        }
+        .detail-card:hover {
+            transform: translateY(-8px);
+        }
+        .detail-card img {
+            width: 100%;
+            height: 230px;
+            object-fit: cover;
+        }
+        .detail-card p {
+            padding: 18px;
+            text-align: center;
+            color: #fff;
+            font-size: 1.05rem;
+        }
+
+        /* 趣味小游戏模块样式 */
+        #game {
+            margin-bottom: 5rem;
+        }
+        .game-box {
+            background: rgba(44, 36, 24, 0.8);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            border: 1px solid #d4b886;
+        }
+        .game-desc {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            font-size: 1.05rem;
+            line-height: 1.9;
+        }
+        #gameCanvas {
+            width: 100%;
+            height: 500px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #4a5a5a;
+        }
+
+        /* 页脚 */
+        footer {
+            background: #2c2418;
+            color: #d4b886;
+            text-align: center;
+            padding: 2.5rem 0;
+            margin-top: 3rem;
+            letter-spacing: 2px;
+            border-top: 2px solid;
+            border-image: linear-gradient(to right, #4a5a5a, #d4b886, #4a5a5a) 1;
+        }
+        /* 手机端适配 */
+        @media (max-width:768px) {
+            .top-nav {
+                position: static;
+                text-align: center;
+                border-radius: 0;
+                margin-bottom: 1rem;
+            }
+            .top-nav a {
+                margin: 0 4px;
+                font-size: 0.85rem;
+            }
+            #overview, .craft-wrap {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            .banner-text h2 {
+                font-size: 2rem;
+            }
+            header h1 {
+                font-size: 1.6rem;
+            }
+            #gameCanvas {
+                height: 350px;
+            }
         }
     </style>
 </head>
 <body>
-<div class="exhibition-container">
-    <div class="info-sidebar">
-        <div class="title-section">
-            <h1>🐻 鎏金熊形青铜镇</h1>
-            <div class="subtitle"><span>西汉 · 高5.2cm</span><span>1952年合肥出土</span><span>中国国家博物馆藏</span></div>
-        </div>
-        <div class="intro-text">📜 席镇 · 压席之器<br>汉代席地而坐，四角以镇压之，防卷翘。此熊镇通体鎏金，造型憨萌，集实用与祥瑞于一身，是汉代贵族生活美学的缩影。</div>
-        <div class="culture-card"><h3>🐾 熊 · 力量与祥瑞</h3><p>汉代崇拜熊，视其为阳刚、勇武的象征，亦谐音“雄”，有英雄之意。黄帝号“有熊氏”，熊因而兼具帝王祥瑞与世俗守护的双重身份。</p></div>
-        <div class="culture-card"><h3>✨ 鎏金工艺</h3><p>金汞齐涂抹于青铜表面，加热汞挥发，金层固着。历经两千年，斑驳金痕与青铜绿锈交相辉映，是时间与技艺的对话。</p></div>
-        <div class="interact-tip">🖱️ 鼠标拖拽旋转 | 右键平移 | 滚动缩放<br>🏷️ 点击金色标签 → 查看细节解读<br>🔍 拉近镜头 → 自动触发微距工艺说明</div>
+    <!-- 鎏金装饰底纹 -->
+    <div class="gold-pattern"></div>
+
+    <!-- 右上角功能索引 -->
+    <div class="top-nav">
+        <a href="#home">首页</a>
+        <a href="#overview">文物概览</a>
+        <a href="#intro">文物简介</a>
+        <a href="#craft">鎏金工艺</a>
+        <a href="#detail">细节赏析</a>
+        <a href="#game">趣味小游戏</a>
     </div>
-    <div class="viewer" id="viewer-container">
-        <div id="hotspot-panel" class="hotspot-panel"><button class="close-hotspot" id="closeHotspotBtn">✕</button><h4 id="panel-title">鎏金工艺</h4><p id="panel-desc">通体鎏金，局部金层自然剥落...</p></div>
-        <div id="macro-tip" class="macro-tip">🔍 微距模式 · 鎏金层细节</div>
-        <div id="loading-overlay" class="loading-overlay">
-            <div class="loading-spinner"></div>
-            <div id="loading-text">正在加载模型...</div>
+
+    <!-- 顶部导航 -->
+    <header id="home">
+        <h1>汉代文物珍品</h1>
+    </header>
+
+    <!-- 顶部横幅 -->
+    <div class="banner">
+        <div class="banner-text">
+            <h2>鎏金熊形青铜镇</h2>
+            <p>汉代宫廷珍品 · 镇席重器</p>
         </div>
     </div>
-</div>
 
-<script type="importmap">
-    {
-        "imports": {
-            "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
-        }
-    }
-</script>
+    <!-- 主体内容 -->
+    <div class="container">
+        <!-- 文物基础信息 -->
+        <div id="overview">
+            <div class="art-img">
+                <img src="https://pic.baike.soso.com/ugc/baikepic2/31428/20220314152608_58578.jpg/0" alt="鎏金熊形青铜镇">
+            </div>
+            <div class="info-card">
+                <h3>文物基础信息</h3>
+                <div class="info-item"><span>文物名称：</span>鎏金熊形青铜镇</div>
+                <div class="info-item"><span>所属年代：</span>汉代</div>
+                <div class="info-item"><span>器物用途：</span>古代席镇、压住席角</div>
+                <div class="info-item"><span>工艺技法：</span>青铜铸造、通体鎏金</div>
+                <div class="info-item"><span>造型特征：</span>仿生熊形、体态敦实古朴</div>
+                <div class="info-item"><span>文化价值：</span>汉代工艺美术与生活礼制代表</div>
+            </div>
+        </div>
 
-<script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-    import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+        <!-- 文物详细介绍 -->
+        <div id="intro">
+            <h3 class="section-title">文物简介</h3>
+            <div class="desc-text">
+                <p>鎏金熊形青铜镇，是汉代极具代表性的青铜生活用器。古人盛行席地而坐，室内铺设草席、竹席，席角极易翻卷翘起，
+                故而专门铸造小型重器按压席边，这类器物便称作“席镇”。</p>
 
-    // 模型链接列表（优先级从高到低）
-    const MODEL_URLS = [
-        'https://cdn.jsdelivr.net/gh/YIZHI-9/1@main/stone%20animal%20sculpture%203d%20model.glb',
-        'https://raw.githubusercontent.com/YIZHI-9/1/refs/heads/main/stone%20animal%20sculpture%203d%20model.glb'
-    ];
-    let currentUrlIndex = 0;
+                <p>此器以瑞熊为仿生造型，熊在汉代寓意祥瑞、力量与辟邪纳福，是当时贵族器物最青睐的创作题材。
+                整器采用失蜡法一体浇铸，器身通体施以鎏金工艺，金层温润厚重，历经千年沧桑依旧光泽内敛。</p>
 
-    const hotspotsData = [
-        { name: '张口露齿', pos: [0.28, 0.68, 0.45], desc: '熊呈张口状，獠牙微露，表现熊的威猛神态，展现了汉代工匠对动物形态的精准捕捉。' },
-        { name: '短耳竖起', pos: [0.32, 0.82, 0.38], desc: '双耳短小直立，增强警觉感，体现了汉代小型雕塑在写实与写意之间的精妙平衡。' },
-        { name: '前肢上举', pos: [0.45, 0.48, 0.35], desc: '前肢自然上举，呈蹲踞状，憨态可掬，是汉代小型雕塑艺术的典型风格。' },
-        { name: '鎏金工艺', pos: [0.15, 0.55, 0.42], desc: '通体鎏金，局部金层剥落。鎏金工艺：金汞齐涂抹后加热，汞挥发，金层附着，历经两千年岁月。' }
-    ];
+                <p>器物体态憨态饱满，线条雄浑简练，既满足日常实用功能，又兼具极高的艺术审美价值。
+                同时也是研究汉代生活习俗、青铜铸造技艺、瑞兽文化信仰的珍贵实物遗存。</p>
+            </div>
+        </div>
 
-    // --- 初始化场景 ---
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf5f0e0);
+        <!-- 鎏金工艺解析 -->
+        <div id="craft">
+            <h3 class="section-title">鎏金工艺解析</h3>
+            <div class="craft-wrap">
+                <div class="craft-img">
+                    <img src="https://img2.baidu.com/it/u=987654321,987654321&fm=253" alt="鎏金工艺细节">
+                </div>
+                <div class="craft-text">
+                    <h4>汉代鎏金 · 千年金辉技艺</h4>
 
-    const container = document.getElementById('viewer-container');
-    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-    camera.position.set(2.2, 1.4, 2.8);
+                    <div class="sub-title">工艺原理</div>
+                    <p>此件青铜熊镇采用汉代正统<strong>汞齐鎏金法</strong>，也称火镀金、金涂。
+                    为汉代皇室贵族专属高端装饰技法，将黄金与水银合成金汞齐，多道工序附着于青铜胎体，金层牢固耐久。</p>
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.setClearColor(0xf5f0e0, 1.0);
-    container.appendChild(renderer.domElement);
+                    <div class="sub-title">器物工艺特征</div>
+                    <p>经实测考证，本件文物鎏金层含金量高达96.8%，金层薄而致密。
+                    通体满鎏金覆盖全身细节，既可隔绝空气防腐防锈，又彰显宫廷器物尊贵气度，是汉代鎏金成熟时期的典范之作。</p>
 
-    const labelRenderer = new CSS2DRenderer();
-    labelRenderer.setSize(container.clientWidth, container.clientHeight);
-    labelRenderer.domElement.style.position = 'absolute';
-    labelRenderer.domElement.style.top = '0px';
-    labelRenderer.domElement.style.left = '0px';
-    labelRenderer.domElement.style.pointerEvents = 'none';
-    container.appendChild(labelRenderer.domElement);
+                    <div class="sub-title">传统制作工序</div>
+                    <ul class="craft-step">
+                        <li>制金汞齐：黄金剪碎与水银调和，加热制成膏状金泥</li>
+                        <li>胎体处理：青铜器身打磨除锈，轻微蚀面增强附着力</li>
+                        <li>抹金烘烤：均匀涂覆金泥，炭火恒温蒸发水银固金</li>
+                        <li>压光修整：玉石玛瑙碾磨金面，刷洗去污提亮质感</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.06;
-    controls.rotateSpeed = 1.2;
-    controls.zoomSpeed = 1.2;
-    controls.panSpeed = 0.8;
-    controls.enableZoom = true;
-    controls.enablePan = true;
-    controls.target.set(0, 0.5, 0);
+        <!-- 细节赏析 -->
+        <div id="detail">
+            <h3 class="section-title">文物细节赏析</h3>
+            <div class="detail-grid">
+                <div class="detail-card">
+                    <img src="https://img1.baidu.com/it/u=1234567890,1234567890&fm=253" alt="造型细节">
+                    <p>瑞熊体态造型细节</p>
+                </div>
+                <div class="detail-card">
+                    <img src="https://img2.baidu.com/it/u=987654321,987654321&fm=253" alt="鎏金工艺">
+                    <p>表面鎏金工艺纹理</p>
+                </div>
+                <div class="detail-card">
+                    <img src="https://img0.baidu.com/it/u=1122334455,1122334455&fm=253" alt="馆藏展示">
+                    <p>博物馆馆藏陈列视角</p>
+                </div>
+            </div>
+        </div>
 
-    // --- 灯光 ---
-    const ambientLight = new THREE.AmbientLight(0x8c8c8c, 0.7);
-    scene.add(ambientLight);
-    const mainLight = new THREE.DirectionalLight(0xfff5e0, 1.2);
-    mainLight.position.set(2, 3, 2);
-    mainLight.castShadow = true;
-    scene.add(mainLight);
-    const backLight = new THREE.PointLight(0xd4b88c, 0.6);
-    backLight.position.set(-1.2, 1.5, -1.8);
-    scene.add(backLight);
-    const fillLight = new THREE.PointLight(0xaaccff, 0.4);
-    fillLight.position.set(1.5, 1.2, 1.8);
-    scene.add(fillLight);
-    const bottomLight = new THREE.PointLight(0xc9aa6f, 0.4);
-    bottomLight.position.set(0, -0.8, 0);
-    scene.add(bottomLight);
-    const fillAmbient = new THREE.AmbientLight(0xccbb99, 0.3);
-    scene.add(fillAmbient);
+        <!-- 新增：趣味小游戏 汉代客厅互动 -->
+        <div id="game">
+            <h3 class="section-title">趣味互动小游戏</h3>
+            <div class="game-box">
+                <p class="game-desc">模拟汉代客厅席地而坐场景<br>点击四角青铜熊镇，即可掀起对应席角，体验古人席镇妙用</p>
+                <div id="gameCanvas"></div>
+            </div>
+        </div>
+    </div>
 
-    const shadowPlane = new THREE.Mesh(
-        new THREE.PlaneGeometry(3.5, 3.5),
-        new THREE.ShadowMaterial({ opacity: 0.2, color: 0x000000, transparent: true, side: THREE.DoubleSide })
-    );
-    shadowPlane.rotation.x = -Math.PI / 2;
-    shadowPlane.position.y = -0.35;
-    shadowPlane.receiveShadow = true;
-    scene.add(shadowPlane);
+    <!-- 页脚 -->
+    <footer>
+        <p>文物展示页面 · 鎏金熊形青铜镇 专题展示</p>
+    </footer>
 
-    // --- 热点面板 ---
-    const panel = document.getElementById('hotspot-panel');
-    const panelTitle = document.getElementById('panel-title');
-    const panelDesc = document.getElementById('panel-desc');
-    function showPanel(title, desc) {
-        panelTitle.innerText = title;
-        panelDesc.innerText = desc;
-        panel.classList.add('show');
-    }
-    document.getElementById('closeHotspotBtn').onclick = () => panel.classList.remove('show');
-    window.addEventListener('click', (e) => {
-        if (!e.target.closest('.hotspot-label') && !panel.contains(e.target)) {
-            panel.classList.remove('show');
-        }
-    });
+    <script>
+        // 平滑滚动导航
+        document.querySelectorAll('.top-nav a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
 
-    function createLabel(name, pos, desc) {
-        const div = document.createElement('div');
-        div.textContent = name;
-        div.className = 'hotspot-label';
-        div.style.backgroundColor = 'rgba(201, 165, 59, 0.95)';
-        div.style.color = '#2c2c2c';
-        div.style.padding = '5px 14px';
-        div.style.borderRadius = '40px';
-        div.style.fontSize = '14px';
-        div.style.fontWeight = 'bold';
-        div.style.cursor = 'pointer';
-        div.style.border = '1px solid #b8860b';
-        div.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
-        div.style.transition = '0.2s';
-        div.style.whiteSpace = 'nowrap';
-        div.style.pointerEvents = 'auto';
-        div.onmouseenter = () => { div.style.transform = 'scale(1.05)'; div.style.backgroundColor = '#e0b854'; };
-        div.onmouseleave = () => { div.style.transform = 'scale(1)'; div.style.backgroundColor = 'rgba(201, 165, 59, 0.95)'; };
-        div.onclick = (e) => { e.stopPropagation(); showPanel(name, desc); };
-        const label = new CSS2DObject(div);
-        label.position.set(pos[0], pos[1], pos[2]);
-        return label;
-    }
+        // ========== 3D汉代客厅小游戏逻辑 ==========
+        let scene, camera, renderer, controls, raycaster, mouse;
+        let mat;
+        let xiZi; // 席子模型
+        let bearTowns = []; // 四个熊镇
+        let liftAngle = 0;
 
-    let bearModel = null;
-    const loadingOverlay = document.getElementById('loading-overlay');
-    const loadingText = document.getElementById('loading-text');
+        // 初始化3D场景
+        function initGame() {
+            const canvas = document.getElementById('gameCanvas');
 
-    function loadModelWithRetry() {
-        if (currentUrlIndex >= MODEL_URLS.length) {
-            loadingText.innerHTML = '模型加载失败，请检查网络或刷新页面重试。<br><button id="retryBtn" class="retry-btn">重新加载</button>';
-            const retryBtn = document.getElementById('retryBtn');
-            if (retryBtn) retryBtn.onclick = () => { currentUrlIndex = 0; loadingOverlay.style.display = 'flex'; loadModelWithRetry(); };
-            return;
-        }
-        const url = MODEL_URLS[currentUrlIndex];
-        loadingText.innerHTML = `正在加载模型... (尝试 ${currentUrlIndex+1}/${MODEL_URLS.length})`;
-        const loader = new GLTFLoader();
-        loader.load(url, (gltf) => {
-            bearModel = gltf.scene;
-            bearModel.traverse(child => { if (child.isMesh) child.castShadow = true; });
-            bearModel.scale.set(0.85, 0.85, 0.85);
-            bearModel.position.set(0, -0.15, 0);
-            scene.add(bearModel);
+            // 场景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x2c2418);
 
-            hotspotsData.forEach(h => {
-                const label = createLabel(h.name, h.pos, h.desc);
-                bearModel.add(label);
+            // 相机
+            camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+            camera.position.set(0, 8, 10);
+
+            // 渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            renderer.shadowMap.enabled = true;
+            canvas.appendChild(renderer.domElement);
+
+            // 轨道控制器
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            // 灯光
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xd4b886, 0.8);
+            dirLight.position.set(10, 20, 10);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
+
+            // 地面
+            const floorGeo = new THREE.PlaneGeometry(20, 20);
+            const floorMat = new THREE.MeshStandardMaterial({color: 0x4a5a5a});
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // 绘制汉代席子
+            const xiGeo = new THREE.PlaneGeometry(10, 10);
+            const xiMat = new THREE.MeshStandardMaterial({color: 0x8c5d2e, side: THREE.DoubleSide});
+            xiZi = new THREE.Mesh(xiGeo, xiMat);
+            xiZi.rotation.x = -Math.PI / 2;
+            xiZi.position.y = 0.02;
+            scene.add(xiZi);
+
+            // 射线检测 点击交互
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // 加载熊镇GLB模型
+            const loader = new THREE.GLTFLoader();
+            const modelUrl = "https://raw.githubusercontent.com/YIZHI-9/1/refs/heads/main/stone%20animal%20sculpture%203d%20model.glb";
+
+            // 四个席角位置
+            const positions = [
+                {x:5, z:5},
+                {x:-5, z:5},
+                {x:5, z:-5},
+                {x:-5, z:-5}
+            ];
+
+            loader.load(modelUrl, (gltf) => {
+                positions.forEach((pos, idx) => {
+                    const bear = gltf.scene.clone();
+                    bear.scale.set(0.8,0.8,0.8);
+                    bear.position.set(pos.x, 0.15, pos.z);
+                    bear.traverse(child => {
+                        if(child.isMesh) child.castShadow = true;
+                    });
+                    bear.userData.idx = idx;
+                    bearTowns.push(bear);
+                    scene.add(bear);
+                });
             });
 
-            const box = new THREE.Box3().setFromObject(bearModel);
-            const center = box.getCenter(new THREE.Vector3());
-            controls.target.copy(center);
-            controls.update();
-
-            loadingOverlay.style.display = 'none';
-        }, (xhr) => {
-            // 可选：显示进度
-            const percent = Math.floor(xhr.loaded / xhr.total * 100);
-            loadingText.innerHTML = `加载模型 ${percent}%`;
-        }, (error) => {
-            console.warn(`模型加载失败 (${url}):`, error);
-            currentUrlIndex++;
-            loadModelWithRetry();
-        });
-    }
-
-    loadModelWithRetry();
-
-    // --- 微距检测 ---
-    const macroTip = document.getElementById('macro-tip');
-    let macroActive = false;
-    function checkMacro() {
-        if (!bearModel) return;
-        const dist = camera.position.distanceTo(bearModel.position);
-        if (dist < 0.95 && !macroActive) {
-            macroActive = true;
-            macroTip.style.opacity = '1';
-            showPanel('🔬 微距视角 · 鎏金工艺', hotspotsData[3].desc + ' 近距离观察可见金层自然剥落的痕迹，这是两千年岁月留下的印记。');
-            setTimeout(() => { if (macroActive) macroTip.style.opacity = '0'; }, 4000);
-        } else if (dist >= 0.95 && macroActive) {
-            macroActive = false;
-            macroTip.style.opacity = '0';
+            // 监听点击
+            renderer.domElement.addEventListener('click', onCanvasClick);
+            // 窗口适配
+            window.addEventListener('resize', onWindowResize);
+            // 渲染循环
+            animate();
         }
-    }
 
-    function animate() {
-        requestAnimationFrame(animate);
-        controls.update();
-        checkMacro();
-        renderer.render(scene, camera);
-        labelRenderer.render(scene, camera);
-    }
-    animate();
+        // 点击熊镇 掀起席子
+        function onCanvasClick(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    function handleResize() {
-        const width = container.clientWidth;
-        const height = container.clientHeight;
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
-        renderer.setSize(width, height);
-        labelRenderer.setSize(width, height);
-    }
-    window.addEventListener('resize', handleResize);
-    handleResize();
-</script>
-<!-- 跳转小游戏的按钮 -->
-<button id="gotoGameBtn" style="position: fixed; top: 20px; right: 20px; z-index: 1000; padding: 10px 20px; background: #d4af37; border: none; border-radius: 30px; font-weight: bold; cursor: pointer;">🎮 玩掀席子游戏</button>
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(bearTowns, true);
 
-<script>
-document.getElementById('gotoGameBtn').addEventListener('click', () => {
-  window.location.href = 'game.html'; // 确保 game.html 在同目录下
-});
-</script>
+            if(intersects.length > 0) {
+                // 简单动画：席子轻微掀起旋转
+                liftAngle += 0.2;
+                xiZi.rotation.z = Math.sin(liftAngle) * 0.3;
+            }
+        }
+
+        function onWindowResize() {
+            const canvas = document.getElementById('gameCanvas');
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // 页面加载完成初始化小游戏
+        window.onload = initGame;
+    </script>
 </body>
 </html>
